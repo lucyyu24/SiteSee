@@ -686,6 +686,8 @@ public class CameraFragment extends Fragment
      * Initiate a still image capture.
      */
     private void takePicture() {
+        MediaPlayer mPlayer = MediaPlayer.create(getActivity(), R.raw.camera_shutter);
+        mPlayer.start();
         lockFocus();
     }
 
@@ -701,6 +703,7 @@ public class CameraFragment extends Fragment
             mState = STATE_WAITING_LOCK;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
