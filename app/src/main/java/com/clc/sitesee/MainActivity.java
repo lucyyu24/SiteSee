@@ -10,7 +10,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getActionBar().hide();
 
         // for replacing container on main layout with camera fragment
         if (null == savedInstanceState) {
