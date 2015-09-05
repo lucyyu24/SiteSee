@@ -41,7 +41,10 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -56,14 +59,23 @@ import android.widget.Toast;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 
+import com.ibm.watson.developer_cloud.text_to_speech.v1.TextToSpeech;
+import com.ibm.watson.developer_cloud.text_to_speech.v1.model.Voice;
+import com.ibm.watson.developer_cloud.visual_recognition.v1.VisualRecognition;
+import com.ibm.watson.developer_cloud.visual_recognition.v1.model.Label;
+import com.ibm.watson.developer_cloud.visual_recognition.v1.model.RecognizedImage;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -785,6 +797,8 @@ public class CameraFragment extends Fragment
         switch (view.getId()) {
             case R.id.picture: {
                 takePicture();
+                recognizeImage ri = new recognizeImage();
+                ri.execute();
                 break;
             }
         }
@@ -908,6 +922,119 @@ public class CameraFragment extends Fragment
                                 }
                             })
                     .create();
+        }
+    }
+
+    private class recognizeImage extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                VisualRecognition service = new VisualRecognition();
+                service.setUsernameAndPassword("ddb42fb1-7460-4585-8dc1-1c536f0421a7", "unAKnnsVkmNz");
+
+                TextToSpeech txtService = new TextToSpeech();
+                txtService.setUsernameAndPassword("6e9ecd3d-44c1-4122-ab7d-18ee181751ff", "6KDkCHNjqF0s");
+                List<Voice> voices = txtService.getVoices();
+
+                File image = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/pics/dog.jpg");
+                Log.v("Exist?", "" + image.exists());
+
+                RecognizedImage recognizedImage = service.recognize(image);
+                List<Label> labels = recognizedImage.getLabels();
+                Iterator<Label> iterator = labels.iterator();
+                String all = "";
+                while (iterator.hasNext()) {
+                    Label cur = iterator.next();
+                    String score = "" + cur.getScore();
+                    String curStr = cur.getName();
+                    all += curStr;
+                    all += " with score ";
+                    all += score;
+                    all += " ";
+                    Log.v("Current label", curStr);
+                }
+
+                Iterator<Voice> voiceList = voices.iterator();
+                int count = 0;
+                while (voiceList.hasNext()) {
+                    Voice voice = voiceList.next();
+                    Log.v(count + "", voice.getName() + ": " + voice.getDescription());
+                    count++;
+                }
+
+                // Get Lisa's voice
+                InputStream is = txtService.synthesize(all, voices.get(8));
+
+                Log.v("is", is.toString());
+
+                File convertedFile = null;
+                convertedFile = File.createTempFile("convertedfile", ".dat", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
+                //Toast.makeText(getApplicationContext(), "Successful file and folder creation.", Toast.LENGTH_SHORT).show();
+                Log.v("converted file", convertedFile.exists() + "");
+
+                FileOutputStream out = new FileOutputStream(convertedFile);
+                //Toast.makeText(getApplicationContext(), "Success out set as output stream.", Toast.LENGTH_SHORT).show();
+
+                byte[] buffer = new byte[16384];
+                int length = 0;
+
+                while ((length = is.read(buffer)) != -1) {
+                    out.write(buffer, 0, length);
+                }
+                //Toast.makeText(getApplicationContext(), "Success buffer is filled.", Toast.LENGTH_SHORT).show();
+                out.close();
+                playFile(convertedFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            /*MediaPlayer mp = new MediaPlayer();
+
+            mp.setDataSource(is);
+
+            Toast.makeText(this, "Success, Path has been set", Toast.LENGTH_SHORT).show();
+
+            mp.prepare();
+            mp.start();*/
+
+            return null;
+        }
+
+        public void playFile(File convertedFile) {
+            try {
+                String path = convertedFile.getAbsolutePath();
+                Log.v("Cindy path is ", path);
+                MediaPlayer mp = new MediaPlayer();
+
+                FileInputStream fis = new FileInputStream(convertedFile);
+                mp.setDataSource(fis.getFD());
+                fis.close();
+
+                //Toast.makeText(getApplicationContext(), "Success, Path has been set", Toast.LENGTH_SHORT).show();
+
+                mp.prepare();
+                mp.start();
+
+                /*mp.setDataSource(path);
+                Toast.makeText(getApplicationContext(), "Success, Path has been set", Toast.LENGTH_SHORT).show();
+
+                mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mp.prepare();
+                Toast.makeText(getApplicationContext(), "Media Player prepared", Toast.LENGTH_SHORT).show();
+
+                mp.start();
+                Toast.makeText(getApplicationContext(), "Media Player playing", Toast.LENGTH_SHORT).show();*/
+            } catch (IllegalArgumentException e) {
+                Log.e("Play file", e.toString());
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                Log.e("Play file", e.toString());
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.e("Play file", e.toString());
+                e.printStackTrace();
+            }
         }
     }
 
