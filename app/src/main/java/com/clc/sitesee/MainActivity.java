@@ -9,6 +9,9 @@ import com.ibm.watson.developer_cloud.visual_recognition.v1.VisualRecognition;
 import com.ibm.watson.developer_cloud.visual_recognition.v1.model.RecognizedImage;
 import com.ibm.watson.developer_cloud.visual_recognition.v1.model.LabelSet;
 import java.io.File;
+import java.util.List;
+import com.ibm.watson.developer_cloud.text_to_speech.v1.TextToSpeech;
+import com.ibm.watson.developer_cloud.text_to_speech.v1.model.Voice;
 
 public class MainActivity extends Activity {
 
@@ -48,5 +51,11 @@ public class MainActivity extends Activity {
 
         RecognizedImage recognizedImage = service.recognize(image);
         System.out.println(recognizedImage);
+
+        /*
+        TextToSpeech service = new TextToSpeech();
+        List<Voice> voices = service.getVoices();
+        System.out.println(voices);
+        */
     }
 }
