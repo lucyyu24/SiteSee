@@ -21,48 +21,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
+        getActionBar().hide();
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        // for replacing container on main layout with camera fragment
+        if (null == savedInstanceState) {
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.container, CameraFragment.newInstance())
+                    .commit();
         }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void sitesee(View view) {
-        recognizeImage ri = new recognizeImage();
-        ri.execute();
-
-        // Lines below automatically open camera app -- we want to avoid this so the code below attempts that
-        //Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        //startActivityForResult(intent,0);
-
-        Camera backCamera = Camera.open();
-        SurfaceView v = new SurfaceView(this);
-        try{
-            backCamera.setPreviewDisplay(v.getHolder());
-        } catch (IOException e){
-            // NOP
-        }
-        backCamera.startPreview();
-        // backCamera.takePicture(shutterCallback, rawPictureCallback, jpegPictureCallback);
-
     }
 
     private class recognizeImage extends AsyncTask<Void, Void, Void> {

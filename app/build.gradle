@@ -17,9 +17,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile files('libs/java-wrapper-1.0.1-jar-with-dependencies.jar')
+    compile "com.android.support:support-v4:23.0.0"
+    compile "com.android.support:support-v13:23.0.0"
+    compile "com.android.support:cardview-v7:23.0.0"
+    compile 'com.android.support:appcompat-v7:23.0.0'
 }
