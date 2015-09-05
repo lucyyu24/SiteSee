@@ -2,14 +2,18 @@ package com.clc.sitesee;
 
 import android.app.Activity;
 import android.os.AsyncTask;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceView;
 import android.view.View;
+
 import com.ibm.watson.developer_cloud.visual_recognition.v1.VisualRecognition;
 import com.ibm.watson.developer_cloud.visual_recognition.v1.model.RecognizedImage;
-import com.ibm.watson.developer_cloud.visual_recognition.v1.model.LabelSet;
+
 import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends Activity {
 
@@ -44,6 +48,21 @@ public class MainActivity extends Activity {
     public void sitesee(View view) {
         recognizeImage ri = new recognizeImage();
         ri.execute();
+
+        // Lines below automatically open camera app -- we want to avoid this so the code below attempts that
+        //Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        //startActivityForResult(intent,0);
+
+        Camera backCamera = Camera.open();
+        SurfaceView v = new SurfaceView(this);
+        try{
+            backCamera.setPreviewDisplay(v.getHolder());
+        } catch (IOException e){
+            // NOP
+        }
+        backCamera.startPreview();
+        // backCamera.takePicture(shutterCallback, rawPictureCallback, jpegPictureCallback);
+
     }
 
     private class recognizeImage extends AsyncTask<Void, Void, Void> {
