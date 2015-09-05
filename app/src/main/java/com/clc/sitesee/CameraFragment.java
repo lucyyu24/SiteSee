@@ -760,6 +760,10 @@ public class CameraFragment extends Fragment
                     Log.d("SAVE FILE!!", mFile.toString());
                     Log.d(TAG, mFile.toString());
                     unlockFocus();
+
+                    // Visual recognition and text to speech
+                    recognizeImage ri = new recognizeImage();
+                    ri.execute();
                 }
             };
 
@@ -797,8 +801,6 @@ public class CameraFragment extends Fragment
         switch (view.getId()) {
             case R.id.picture: {
                 takePicture();
-                recognizeImage ri = new recognizeImage();
-                ri.execute();
                 break;
             }
         }
@@ -937,7 +939,8 @@ public class CameraFragment extends Fragment
                 txtService.setUsernameAndPassword("6e9ecd3d-44c1-4122-ab7d-18ee181751ff", "6KDkCHNjqF0s");
                 List<Voice> voices = txtService.getVoices();
 
-                File image = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/pics/dog.jpg");
+                //File image = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/pics/dog.jpg");
+                File image = new File (getActivity().getExternalFilesDir(null), "pic.jpg");
                 Log.v("Exist?", "" + image.exists());
 
                 RecognizedImage recognizedImage = service.recognize(image);
@@ -984,7 +987,7 @@ public class CameraFragment extends Fragment
                 }
                 //Toast.makeText(getApplicationContext(), "Success buffer is filled.", Toast.LENGTH_SHORT).show();
                 out.close();
-                playFile(convertedFile);
+                //playFile(convertedFile);
             } catch (IOException e) {
                 e.printStackTrace();
             }
