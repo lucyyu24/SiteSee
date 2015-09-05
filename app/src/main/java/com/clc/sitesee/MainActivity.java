@@ -1,6 +1,7 @@
 package com.clc.sitesee;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,12 +42,22 @@ public class MainActivity extends Activity {
     }
 
     public void sitesee(View view) {
-        VisualRecognition service = new VisualRecognition();
-        service.setUsernameAndPassword("lucyyu1996@hotmail.com", "SFBNY16S");
+        recognizeImage ri = new recognizeImage();
+        ri.execute();
+    }
 
-        File image = new File("src/main/res/drawable/car.jpg");
+    private class recognizeImage extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground (Void...params){
+            VisualRecognition service = new VisualRecognition();
+            service.setUsernameAndPassword("lucyyu1996@hotmail.com", "SFBNY16S");
 
-        RecognizedImage recognizedImage = service.recognize(image);
-        System.out.println(recognizedImage);
+            File image = new File("src/main/res/drawable/car.jpg");
+
+            RecognizedImage recognizedImage = service.recognize(image);
+            System.out.println(recognizedImage);
+            return null;
+
+        }
     }
 }
