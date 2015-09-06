@@ -23,6 +23,7 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -55,6 +56,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
@@ -67,6 +69,7 @@ import com.ibm.watson.developer_cloud.visual_recognition.v1.model.RecognizedImag
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,8 +80,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+//import android.speech.tts.TextToSpeech;
 
 
 public class CameraFragment extends Fragment
@@ -934,53 +940,77 @@ public class CameraFragment extends Fragment
 
         @Override
         protected Void doInBackground(Void... params) {
+            VisualRecognition service = new VisualRecognition();
+            service.setUsernameAndPassword("ddb42fb1-7460-4585-8dc1-1c536f0421a7", "unAKnnsVkmNz");
+
+            /*TextToSpeech txtService = new TextToSpeech();
+            txtService.setUsernameAndPassword("6e9ecd3d-44c1-4122-ab7d-18ee181751ff", "6KDkCHNjqF0s");
+            List<Voice> voices = txtService.getVoices();*/
+
+            //File image = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/pics/dog.jpg");
+            File image = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
+            Log.v("Exist?", "" + image.exists());
+
+            RecognizedImage recognizedImage = service.recognize(image);
+            List<Label> labels = recognizedImage.getLabels();
+            Iterator<Label> iterator = labels.iterator();
+            String all = "There is ";
+            while (iterator.hasNext()) {
+                Label cur = iterator.next();
+                String score = "" + cur.getScore();
+                String curStr = cur.getName();
+                all += curStr;
+                all += ", ";
+                Log.v("Current label", curStr);
+                Log.v("Current score", score);
+            }
+
+            Intent intent = new Intent(getActivity(), AndroidTextToSpeechActivity.class);
+            intent.putExtra("list", all);
+            startActivity(intent);
+
+            /*Iterator<Voice> voiceList = voices.iterator();
+            int count = 0;
+            while (voiceList.hasNext()) {
+                Voice voice = voiceList.next();
+                Log.v(count + "", voice.getName() + ": " + voice.getDescription());
+                count++;
+            }*/
+
+
+                /*Log.v("context ", getActivity().getApplicationContext().toString());
+                TextToSpeech tts = new TextToSpeech(getActivity().getApplicationContext(),
+                        new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int status) {
+                        if(status != TextToSpeech.ERROR) {
+                            t1.setLanguage(Locale.UK);
+                        }
+                    }
+                });
+                tts.setLanguage(Locale.US);
+                tts.speak("Text to say aloud", TextToSpeech.QUEUE_ADD, null);*/
+
+
+            /*// Get Lisa's voice
+            InputStream is = txtService.synthesize(all, voices.get(8));
+
+            Log.v("is", is.toString());
+
+            File convertedFile = null;
             try {
-                VisualRecognition service = new VisualRecognition();
-                service.setUsernameAndPassword("ddb42fb1-7460-4585-8dc1-1c536f0421a7", "unAKnnsVkmNz");
-
-                TextToSpeech txtService = new TextToSpeech();
-                txtService.setUsernameAndPassword("6e9ecd3d-44c1-4122-ab7d-18ee181751ff", "6KDkCHNjqF0s");
-                List<Voice> voices = txtService.getVoices();
-
-                //File image = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/pics/dog.jpg");
-                File image = new File (getActivity().getExternalFilesDir(null), "pic.jpg");
-                Log.v("Exist?", "" + image.exists());
-
-                RecognizedImage recognizedImage = service.recognize(image);
-                List<Label> labels = recognizedImage.getLabels();
-                Iterator<Label> iterator = labels.iterator();
-                String all = "";
-                while (iterator.hasNext()) {
-                    Label cur = iterator.next();
-                    String score = "" + cur.getScore();
-                    String curStr = cur.getName();
-                    all += curStr;
-                    all += " with score ";
-                    all += score;
-                    all += " ";
-                    Log.v("Current label", curStr);
+                convertedFile = File.createTempFile("convertedfile", ".wav", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.v("converted file", convertedFile.exists() + "");
+            try {
+                FileOutputStream out = null;
+                try {
+                    out = new FileOutputStream(convertedFile);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
-
-                Iterator<Voice> voiceList = voices.iterator();
-                int count = 0;
-                while (voiceList.hasNext()) {
-                    Voice voice = voiceList.next();
-                    Log.v(count + "", voice.getName() + ": " + voice.getDescription());
-                    count++;
-                }
-
-                // Get Lisa's voice
-                InputStream is = txtService.synthesize(all, voices.get(8));
-
-                Log.v("is", is.toString());
-
-                File convertedFile = null;
-                convertedFile = File.createTempFile("convertedfile", ".dat", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
-                //Toast.makeText(getApplicationContext(), "Successful file and folder creation.", Toast.LENGTH_SHORT).show();
-                Log.v("converted file", convertedFile.exists() + "");
-
-                FileOutputStream out = new FileOutputStream(convertedFile);
-                //Toast.makeText(getApplicationContext(), "Success out set as output stream.", Toast.LENGTH_SHORT).show();
 
                 byte[] buffer = new byte[16384];
                 int length = 0;
@@ -988,21 +1018,11 @@ public class CameraFragment extends Fragment
                 while ((length = is.read(buffer)) != -1) {
                     out.write(buffer, 0, length);
                 }
-                //Toast.makeText(getApplicationContext(), "Success buffer is filled.", Toast.LENGTH_SHORT).show();
                 out.close();
-                //playFile(convertedFile);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            /*MediaPlayer mp = new MediaPlayer();
-
-            mp.setDataSource(is);
-
-            Toast.makeText(this, "Success, Path has been set", Toast.LENGTH_SHORT).show();
-
-            mp.prepare();
-            mp.start();*/
+            playFile(convertedFile);*/
 
             return null;
         }
@@ -1017,20 +1037,8 @@ public class CameraFragment extends Fragment
                 mp.setDataSource(fis.getFD());
                 fis.close();
 
-                //Toast.makeText(getApplicationContext(), "Success, Path has been set", Toast.LENGTH_SHORT).show();
-
                 mp.prepare();
                 mp.start();
-
-                /*mp.setDataSource(path);
-                Toast.makeText(getApplicationContext(), "Success, Path has been set", Toast.LENGTH_SHORT).show();
-
-                mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mp.prepare();
-                Toast.makeText(getApplicationContext(), "Media Player prepared", Toast.LENGTH_SHORT).show();
-
-                mp.start();
-                Toast.makeText(getApplicationContext(), "Media Player playing", Toast.LENGTH_SHORT).show();*/
             } catch (IllegalArgumentException e) {
                 Log.e("Play file", e.toString());
                 e.printStackTrace();

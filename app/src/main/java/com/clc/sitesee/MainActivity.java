@@ -11,6 +11,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         // for replacing container on main layout with camera fragment
         if (null == savedInstanceState) {
             getFragmentManager().beginTransaction()
